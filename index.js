@@ -1,28 +1,70 @@
-// const express = require('express');
 import express from 'express';
-import dotenv from 'dotenv'; // import thư viện dotenv
-dotenv.config(); // gọi hàm config() trong dotenv , tác dụng là đọc tệp trong .env
+import dotenv from 'dotenv'; 
+dotenv.config(); 
+import user_router from './routes/user_router.js';
+import fs from 'fs';
+import dbjson from './db.json' with {type: "json"};
 
-const PORT = process.env.PORT; // gọi port trong env
+const PORT = 8001; 
 
-const app = express(); // tạo đối tượng app từ thư viện express
+const app = express(); 
+app.use(express.json());
 
 app.get('/', (req, res) => { //route
-  // res.send('chau thanh binh');
-  res.status(200).json({ // trả về status code là 200 và 1 obj json
-    message: 'hello world',
-    name: 'thanh binh',
-    age: '20'
-  })
+  const users = dbjson.users;
+  res.status(200).json(users);
 })
+app.get("/:id", (req, res) => {
+  const { id } = req.params;  
+  const user = dbjson.users.find((user) => user.ID === parseInt(id)); 
+  if (!user) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+  res.status(200).json(user);
+});
 
-app.listen(8000, () => { // lắng nghe các yêu cầu http trên port 8000
+
+app.post("/", (req, res) => {
+  const newUser = req.body; 
+  if (dbjson.users.find((user)=> user.ID === newUser.ID)){
+    return res.status(400).json({error: "User already exists"});
+  }
+  if (!newUser.ID || !newUser.name || !newUser.age) {
+    return res.status(400).json({ error: "Missing required fields (ID, name, age)" });
+  }
+  dbjson.users.push(newUser);
+  fs.writeFileSync('./db.json', JSON.stringify(dbjson, null, 2), 'utf-8');
+  res.status(201).json(newUser);
+});
+
+app.put("/:id", (req, res) => {
+  const { id } = req.params;  
+  const updatedUser = req.body;  
+  const userIndex = dbjson.users.findIndex((user) => user.ID === parseInt(id));
+  if (userIndex === -1) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+  dbjson.users[userIndex].age = updatedUser.age;
+  dbjson.users[userIndex].name = updatedUser.name;
+  fs.writeFileSync('./db.json', JSON.stringify(dbjson, null, 2), 'utf-8');
+  res.status(200).json(dbjson.users[userIndex]);
+});
+
+app.delete("/:id", (req, res) => {
+  const { id } = req.params;  
+  const userIndex = dbjson.users.findIndex((user) => user.ID === parseInt(id));
+  if (userIndex === -1) {
+    return res.status(404).json({ error: 'User not found' });  
+  }
+  dbjson.users.splice(userIndex, 1);
+  fs.writeFileSync('./db.json', JSON.stringify(dbjson, null, 2), 'utf-8');
+  res.status(200).json({ message: 'User deleted successfully' });
+});
+
+
+
+app.use(user_router);
+
+app.listen(process.env.PORT, () => { 
   console.log(`server in running on http://localhost:${PORT}`);
 })
-
-// sự khác nhau giữa import là require( hay dùng import)
-// so sánh giữa web server (Nginx, Apache) và server backend
-// về nhà tìm hiểu những cái vừa code và những file .env, .gitignore, folder có trong project
-// .env chỉ có number or string
-
-// .env lưu các biến quan trọng , api-key, mk database,... những thông tin cần đc bảo mật
