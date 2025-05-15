@@ -1,0 +1,203 @@
+<script setup>
+import { ref, computed, onMounted } from 'vue';
+
+function getIDPokemon(url) {
+  const parts = url.split('/');
+  return parseInt(parts[parts.length - 2], 10);
+}
+
+async function fetchPromise(URL) {
+  try {
+    const response = await fetch(URL);
+    return await response.json();
+  } catch (error) {
+    console.error("Lỗi khi fetch dữ liệu:", error);
+    return null;
+  }
+}
+
+const valueSearch = ref('');
+const filteredPokemons = ref([]);
+const click_inf = ref(false);
+const selectedPokemon = ref(null);
+const evolutionChain = ref([]); // 🎯 Lưu chuỗi tiến hóa
+
+let pokemons = JSON.parse(localStorage.getItem("pokemonsData")) || [];
+filteredPokemons.value = pokemons;
+
+const offset = ref(0);
+const limit = 36;
+
+const renderPokemon = computed(() => {
+  return filteredPokemons.value.slice(0, offset.value + limit);
+});
+
+async function getPokemon() {
+  if (pokemons.length === 0) {
+    const response = await fetchPromise("https://pokeapi.co/api/v2/pokemon/?offset=0&limit=898");
+    if (response && response.results) {
+      pokemons = response.results;
+      filteredPokemons.value = pokemons;
+      localStorage.setItem("pokemonsData", JSON.stringify(pokemons));
+    }
+  }
+}
+
+onMounted(() => {
+  getPokemon();
+});
+
+function handleSearch() {
+  const query = valueSearch.value.toLowerCase();
+  filteredPokemons.value = pokemons.filter(pokemon => 
+    pokemon.name.toLowerCase().includes(query)
+  );
+  offset.value = 0;
+}
+
+function click_back() {
+  selectedPokemon.value = null;
+  click_inf.value = false;
+  evolutionChain.value = []; // 🛑 Xóa tiến hóa khi quay lại danh sách
+}
+
+function handleLoadMore() {
+  offset.value += limit;
+}
+
+async function click_information_pokemon(pokemon) {
+  click_inf.value = true;
+  const pokemonID = getIDPokemon(pokemon.url);
+  
+  const details = await fetchPromise(`https://pokeapi.co/api/v2/pokemon/${pokemonID}`);
+  if (details) {
+    selectedPokemon.value = details;
+    
+    // 🎯 Lấy chuỗi tiến hóa
+    const species = await fetchPromise(details.species.url);
+    if (species && species.evolution_chain) {
+      const evolutionData = await fetchPromise(species.evolution_chain.url);
+      if (evolutionData) {
+        extractEvolutionChain(evolutionData.chain);
+      }
+    }
+  }
+}
+
+// 🎯 Hàm xử lý chuỗi tiến hóa
+function extractEvolutionChain(chain) {
+  const evolutions = [];
+  let current = chain;
+
+  while (current) {
+    const pokeName = current.species.name;
+    const pokeID = getIDPokemon(current.species.url);
+    evolutions.push({
+      name: pokeName,
+      id: pokeID,
+      image: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokeID}.png`
+    });
+    current = current.evolves_to.length ? current.evolves_to[0] : null;
+  }
+
+  evolutionChain.value = evolutions;
+}
+</script>
+
+<template>
+  <div class="container">
+    <div v-if="selectedPokemon">
+      <button class="back-button" @click="click_back">← Back</button>
+      <img 
+        :src="`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${getIDPokemon(selectedPokemon.species.url)}.png`" 
+        class="pokemon-image"
+        alt="Pokemon Image"
+      />
+      <h2>{{ selectedPokemon.name }}</h2>
+      <p>ID: {{ getIDPokemon(selectedPokemon.species.url) }}</p>
+
+      <!-- 🎯 Hiển thị Evolution Chain -->
+      <div v-if="evolutionChain.length" class="evolution-chain">
+        <h3>Evolution</h3>
+        <div class="evolution-list">
+          <div 
+            v-for="(evo, index) in evolutionChain" 
+            :key="evo.id" 
+            class="evolution-item">
+            <img :src="evo.image" alt="Evolution Image">
+            <p>{{ evo.name }}</p>
+            <span v-if="index < evolutionChain.length - 1"> ➝ </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div v-else>
+      <div class="header">
+        <h2>Pokemon API</h2>
+      </div>
+      <input 
+        type="text" 
+        placeholder="Search some Pokemon" 
+        class="poke-search" 
+        v-model="valueSearch" 
+        @input="handleSearch" 
+      />
+  
+      <div class="pokemon-list">
+        <div 
+          v-for="pokemon in renderPokemon" 
+          :key="pokemon.name" 
+          class="pokemon-item" 
+          @click="click_information_pokemon(pokemon)">
+          <div class="pokemon-id">{{ getIDPokemon(pokemon.url) }}</div>
+          <img 
+            :src="`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${getIDPokemon(pokemon.url)}.png`" 
+            alt="Pokemon Image"
+          />
+          <p>{{ pokemon.name }}</p>
+        </div>
+      </div>
+  
+      <button 
+        v-show="filteredPokemons.length > limit"
+        class="load-page-btn" 
+        @click="handleLoadMore">Load More</button>
+    </div>
+  </div>
+</template>
+
+<style>
+/* Giữ nguyên CSS cũ */
+
+/* 🎯 Thêm class pokemon-image */
+.pokemon-image {
+  width: 200px;
+  height: 200px;
+}
+
+/* 🎯 Evolution Chain */
+.evolution-chain {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.evolution-list {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.evolution-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-transform: capitalize;
+}
+
+.evolution-item img {
+  width: 60px;
+  height: 60px;
+}
+</style>

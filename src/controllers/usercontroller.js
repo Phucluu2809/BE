@@ -1,70 +1,76 @@
 import userService from '../service/user_service.js';
+import SuccessResponse from '../handler/succes.response.js';
+import ErrorResponse from '../handler/error.response.js';
 
-const getAllUser = async (req, res) => {
-  const user = await userService.getAllUsers();
-  if (!user) {
-    return res.status(404).json({ message: "User not found!" });
+class UserController {
+  constructor() {
+    this.userService = userService;
   }
-  res.status(200).json(user);
-};
 
-const getUserByID = async (req, res) => {
-  const id = req.params.id;
-  const user = await userService.getUserById(id);
-  if (!user) {
-    return res.status(404).json({ message: "User not found!" });
-  }
-  res.status(200).json(user);
-};
-
-const addUser = async (req, res) => {
-  try {
-    const user = req.body;
-    const newUser = await userService.addUser(user);
-    res.status(201).json({
-      success: true,
-      data: newUser
-    });
-  } catch (error) {
-    console.error('Lỗi khi thêm user:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message || 'Lỗi server khi thêm người dùng'
-    });
-  }
-};
-
-const putUser = async (req, res) => {
-  try {
-    const id = req.params.id;
-    const user = req.body;
-    const updateUser = await userService.updateUser(id, user);
-    if (!updateUser) {
-      return res.status(404).json({ message: "User not found!" });
+  async getAllUser(req, res) {
+    try {
+      const users = await this.userService.getAllUsers();
+      if (!users || users.length === 0) {
+        return ErrorResponse.NotFound('Users not found!').send(res);
+      }
+      return SuccessResponse.OK(users, 'Users retrieved successfully').send(res);
+    } catch (error) {
+      return ErrorResponse.InternalServer('Error retrieving users').send(res);
     }
-    res.status(200).json(updateUser);
-  } catch (error) {
-    res.status(500).json({ message: "Internal Server Error" });
   }
-};
 
-const deleteUser = async (req, res) => {
-  try {
-    const id = req.params.id;
-    const deleteUser = await userService.deleteUser(id);
-    if (!deleteUser) {
-      return res.status(404).json({ message: "User not found!" });
+  async getUserByID(req, res) {
+    try {
+      const id = req.params.id;
+      const user = await this.userService.getUserById(id);
+      if (!user) {
+        return ErrorResponse.NotFound('User not found!').send(res);
+      }
+      return SuccessResponse.OK(user, 'User retrieved successfully').send(res);
+    } catch (error) {
+      return ErrorResponse.InternalServer('Error retrieving user').send(res);
     }
-    res.status(200).send("User deleted successfully");
-  } catch (error) {
-    res.status(500).json({ message: "Internal Server Error" });
   }
-};
 
-export default {
-  getAllUser,
-  getUserByID,
-  addUser,
-  putUser,
-  deleteUser
-};
+  async addUser(req, res) {
+    try {
+      const user = req.body;
+      const newUser = await this.userService.addUser(user);
+      return SuccessResponse.Created(newUser, 'User created successfully').send(res);
+    } catch (error) {
+      console.error('Lỗi khi thêm user:', error);
+      return ErrorResponse.InternalServer('Error creating user').send(res);
+    }
+  }
+
+  async putUser(req, res) {
+    try {
+      const id = req.params.id;
+      const user = req.body;
+      const updateUser = await this.userService.updateUser(id, user);
+      if (!updateUser) {
+        return ErrorResponse.NotFound('User not found!').send(res);
+      }
+      return SuccessResponse.OK(updateUser, 'User updated successfully').send(res);
+    } catch (error) {
+      return ErrorResponse.InternalServer('Error updating user').send(res);
+    }
+  }
+
+  async deleteUser(req, res) {
+    try {
+      const id = req.params.id;
+      const isDeleted = await this.userService.deleteUser(id);
+      if (!isDeleted) {
+        return ErrorResponse.NotFound('User not found!').send(res);
+      }
+      return SuccessResponse.OK(null, 'User deleted successfully').send(res);
+    } catch (error) {
+      return ErrorResponse.InternalServer('Error deleting user').send(res);
+    }
+  }
+}
+
+// Create instance and export
+const userController = new UserController();
+export default userController;
