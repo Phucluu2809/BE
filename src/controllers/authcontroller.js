@@ -7,43 +7,53 @@ class AuthController {
     this.authService = authService;
   }
 
+  // Register new user
   async register(req, res) {
     try {
       const userData = req.body;
       const newUser = await this.authService.register(userData);
-      
       return SuccessResponse.Created(
         { userId: newUser._id },
-        'Đăng ký thành công'
+        'Registration successful'
       ).send(res);
-    } catch (err) {
-      return ErrorResponse.InternalServer('Lỗi server khi đăng ký').send(res);
+    } catch (error) {
+      console.error('Registration error:', error);
+      return ErrorResponse.InternalServer('Error during registration').send(res);
     }
   }
 
+  // Login user
   async login(req, res) {
     try {
       const { username, password } = req.body;
-      const result = await this.authService.login(username, password);
+      console.log('Login attempt:', { username, password: '***' });
+      
+      if (!username || !password) {
+        return ErrorResponse.BadRequest('Username and password are required').send(res);
+      }
 
+      const result = await this.authService.login(username, password);
+      console.log('Login result:', result);
+      
       if (result.error) {
         return ErrorResponse.Unauthorized(result.error).send(res);
       }
 
-      // Set refresh token in cookie
-      res.cookie(
-        'refreshToken', 
-        result.refreshToken, 
-        this.authService.getCookieOptions()
-      );
+      // Set refresh token in HTTP-only cookie
+      res.cookie('refreshToken', result.refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+      });
 
       return SuccessResponse.OK({
         accessToken: result.accessToken,
         user: result.user
-      }, 'Đăng nhập thành công').send(res);
-    } catch (err) {
-      console.error('Error during login:', err);
-      return ErrorResponse.InternalServer('Lỗi server khi đăng nhập').send(res);
+      }, 'Login successful').send(res);
+    } catch (error) {
+      console.error('Login error details:', error);
+      return ErrorResponse.InternalServer('Error during login').send(res);
     }
   }
 

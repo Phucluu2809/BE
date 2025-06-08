@@ -12,24 +12,26 @@ const userSchema = new mongoose.Schema({
   email: {
     type: String,
     required: true,
-    unique: true
   },
   phone: {
     type: String,
     required: true,
-    unique: true
   },
   username: { 
     type: String, 
     required: true, 
-    unique: true 
   },
   password: {
      type: String, 
      required: true 
+  },
+  role: {
+    type: String,
+    enum: ['user', 'admin'],
+    default: 'user'
   }
 }, { timestamps: false,  versionKey: false });   // tắt createAt and updateAT, xóa luôn cái __v đằng sau=))
 
-export default mongoose.model('User', userSchema);
+const User = mongoose.models.User || mongoose.model('User', userSchema);
 
-// đưa em vào 
+export default User;

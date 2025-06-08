@@ -1,10 +1,7 @@
 import express from 'express';
 import mongoose from 'mongoose';
-import dotenv from 'dotenv';
-import userRouter from '../../routes/user_router.js';
+import pollRouter from '../../routes/poll_router.js';
 import cookieParser from 'cookie-parser';
-
-dotenv.config();
 
 class App {
   constructor() {
@@ -20,17 +17,12 @@ class App {
   }
 
   setupRoutes() {
-    this.app.use('/', userRouter);
+    this.app.use('/', pollRouter);
   }
 
   async connectDatabase() {
-    const connectString = process.env.Mongo_URL || 'mongodb://localhost:27017/mySGroup';
+    const connectString = 'mongodb://localhost:27017/mySGroup';
     
-    if (!connectString) {
-      console.error('Chuỗi kết nối MongoDB không tồn tại!');
-      return;
-    }
-
     try {
       mongoose.set('debug', true);
       mongoose.set('debug', { color: true });

@@ -4,17 +4,23 @@ import jwt from 'jsonwebtoken';
 
 class AuthService {
   constructor() {
-    // Provide default values if environment variables are not set
-    this.jwtSecret = process.env.JWT_SECRET || 'SecretKeyCuaTao';
-    this.jwtRefreshSecret = process.env.JWT_REFRESH_SECRET || 'RefreshSecretKeyCuatao';
+    // // Provide default values if environment variables are not set
+    // this.jwtSecret = process.env.JWT_SECRET || 'SecretKeyCuaTao';
+    // this.jwtRefreshSecret = process.env.JWT_REFRESH_SECRET || 'RefreshSecretKeyCuatao';
     
-    // Log warning if using default values
-    if (!process.env.JWT_SECRET) {
-      console.warn('Warning: Using default JWT_SECRET. Please set it in .env file');
-    }
-    if (!process.env.JWT_REFRESH_SECRET) {
-      console.warn('Warning: Using default JWT_REFRESH_SECRET. Please set it in .env file');
-    }
+    // // Log warning if using default values
+    // if (!process.env.JWT_SECRET) {
+    //   console.warn('Warning: Using default JWT_SECRET. Please set it in .env file');
+    // }
+    // if (!process.env.JWT_REFRESH_SECRET) {
+    //   console.warn('Warning: Using default JWT_REFRESH_SECRET. Please set it in .env file');
+    // }
+    this.jwtSecret = 'SecretKeyCuaTao';
+    this.jwtRefreshSecret = 'RefreshSecretKeyCuatao';
+  }
+
+  async findByUsername(username) {
+    return await User.findOne({ username });
   }
 
   async register(userData) {
@@ -34,14 +40,20 @@ class AuthService {
   }
 
   async login(username, password) {
+    console.log('Login attempt for username:', username); // Debug log
+
     // Find user
     const user = await User.findOne({ username });
+    console.log('Found user:', user ? 'Yes' : 'No'); // Debug log
+
     if (!user) {
       return { error: 'User not found' };
     }
 
     // Verify password
     const isMatch = comparePassword(password, user.password);
+    console.log('Password match:', isMatch); // Debug log
+
     if (!isMatch) {
       return { error: 'Invalid password' };
     }
@@ -49,6 +61,7 @@ class AuthService {
     // Generate tokens
     const accessToken = this._generateAccessToken(user);
     const refreshToken = this._generateRefreshToken(user);
+    console.log('Generated tokens:', { accessToken, refreshToken }); // Debug log
 
     return {
       accessToken,
@@ -114,14 +127,15 @@ class AuthService {
       gender: user.gender,
       email: user.email,
       phone: user.phone,
-      username: user.username
+      username: user.username,
+      role: user.role
     };
   }
 
   getCookieOptions() {
     return {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: false, // Set to false for development
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     };
   }

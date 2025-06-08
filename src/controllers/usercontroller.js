@@ -5,16 +5,26 @@ import ErrorResponse from '../handler/error.response.js';
 class UserController {
   constructor() {
     this.userService = userService;
+    // Bind methods to instance
+    this.getAllUser = this.getAllUser.bind(this);
+    this.getUserByID = this.getUserByID.bind(this);
+    this.addUser = this.addUser.bind(this);
+    this.putUser = this.putUser.bind(this);
+    this.deleteUser = this.deleteUser.bind(this);
   }
 
   async getAllUser(req, res) {
     try {
+      console.log('Getting all users...'); // Debug log
       const users = await this.userService.getAllUsers();
+      console.log('Users found:', users); // Debug log
+      
       if (!users || users.length === 0) {
         return ErrorResponse.NotFound('Users not found!').send(res);
       }
       return SuccessResponse.OK(users, 'Users retrieved successfully').send(res);
     } catch (error) {
+      console.error('Error in getAllUser:', error); // Error log
       return ErrorResponse.InternalServer('Error retrieving users').send(res);
     }
   }
