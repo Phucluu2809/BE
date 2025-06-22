@@ -8,6 +8,16 @@ import userController from '../src/controllers/usercontroller.js';
 import voteController from '../src/controllers/voteController.js';
 
 const router = Router();
+// test with anh nhân
+    router.get('/api/polls/getAll_information', async (req, res, next) => {
+        try {
+            const users = await userController.getAllUser();
+            res.json({ users });
+        } catch (error) {
+            console.error('Error in /getAll_information:', error);
+            res.status(500).json({ error: error.message });
+        }
+        });
 
 // User Management
 router.post('/api/auth/register', validateUser, register);  

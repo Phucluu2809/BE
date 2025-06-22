@@ -1,4 +1,4 @@
-import User from '../models/UserModel.js';
+import User from '../models/usermodel.js';
 import { hashpass, comparePassword } from '../until/hashpass.js';
 import jwt from 'jsonwebtoken';
 

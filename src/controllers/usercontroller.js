@@ -13,21 +13,23 @@ class UserController {
     this.deleteUser = this.deleteUser.bind(this);
   }
 
-  async getAllUser(req, res) {
+  async getAllUser() {
     try {
       console.log('Getting all users...'); // Debug log
       const users = await this.userService.getAllUsers();
       console.log('Users found:', users); // Debug log
-      
+    
       if (!users || users.length === 0) {
-        return ErrorResponse.NotFound('Users not found!').send(res);
+       throw new Error('Users not found!');
       }
-      return SuccessResponse.OK(users, 'Users retrieved successfully').send(res);
+
+     return users; // Trả về dữ liệu
     } catch (error) {
       console.error('Error in getAllUser:', error); // Error log
-      return ErrorResponse.InternalServer('Error retrieving users').send(res);
-    }
+      throw error; // Ném lỗi để xử lý tại router
+   }
   }
+
 
   async getUserByID(req, res) {
     try {

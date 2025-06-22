@@ -12,16 +12,23 @@ class App {
   }
 
   setupMiddleware() {
-    this.app.use(express.json());
+    this.app.use((req, res, next) => {
+      if (['POST', 'PUT', 'PATCH'].includes(req.method)) {
+        express.json()(req, res, next); // Chỉ parse body JSON cho các phương thức này
+      } else {
+        next();
+      }
+    });
     this.app.use(cookieParser());
   }
+
 
   setupRoutes() {
     this.app.use('/', pollRouter);
   }
 
   async connectDatabase() {
-    const connectString = 'mongodb://localhost:27017/mySGroup';
+    const connectString = 'mongodb+srv://Phucluu:300105@cluster0.agdiigy.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
     
     try {
       mongoose.set('debug', true);
