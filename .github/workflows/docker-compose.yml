@@ -14,7 +14,7 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/be-app: \
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/be-app:latest \
                        -t ${{ secrets.DOCKER_USERNAME }}/be-app:${{ github.sha }} .
 
       - name: Login to Docker Hub
@@ -22,7 +22,7 @@ jobs:
 
       - name: Push Docker image to Docker Hub
         run: |
-          docker push ${{ secrets.DOCKER_USERNAME }}/be-app:1.0
+          docker push ${{ secrets.DOCKER_USERNAME }}/be-app:latest
           docker push ${{ secrets.DOCKER_USERNAME }}/be-app:${{ github.sha }}
 
       - name: SSH to EC2 and deploy
@@ -35,8 +35,8 @@ jobs:
             echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
             docker stop be-app || true
             docker rm be-app || true
-            docker pull ${{ secrets.DOCKER_USERNAME }}/be-app:1.0
+            docker pull ${{ secrets.DOCKER_USERNAME }}/be-app:latest
             docker run -d -p 8000:8000 --name be-app \
             -e MONGO_URL="${{ secrets.MONGO_URL }}" \
             -e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
-            ${{ secrets.DOCKER_USERNAME }}/be-app:1.0
+            ${{ secrets.DOCKER_USERNAME }}/be-app:latest
