@@ -9,16 +9,16 @@ import voteController from '../src/controllers/voteController.js';
 
 const router = Router();
 // test with anh nhân
-    router.get('/api/polls/getAll_information', async (req, res, next) => {
+    router.get('/', async (req, res, next) => {
         try {
-            const users = await userController.getAllUser();
-            res.json({ users });
+            // const users = await userController.getAllUser();
+            res.json({"Hello xin chào"})
         } catch (error) {
             console.error('Error in /getAll_information:', error);
             res.status(500).json({ error: error.message });
         }
         });
-    router.get('/getUserByID/:id', userController.getUserByID);
+    router.get('/:id', userController.getUserByID);
 // User Management
 router.post('/api/auth/register', validateUser, register);  
 router.post('/api/auth/login', login);  
