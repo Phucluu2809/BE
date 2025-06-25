@@ -12,7 +12,7 @@ const router = Router();
     router.get('/', async (req, res, next) => {
         try {
             const users = await userController.getAllUser();
-            res.json({message : "xin chao moi nguoi"});
+            res.send( "xin chao moi nguoihhhh");
             
         } catch (error) {
             console.error('Error in /getAll_information:', error);
