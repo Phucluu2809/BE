@@ -12,7 +12,8 @@ const router = Router();
     router.get('/', async (req, res, next) => {
         try {
             const users = await userController.getAllUser();
-            res.json({ users });
+            res.json({ message: "hello" });
+            
         } catch (error) {
             console.error('Error in /getAll_information:', error);
             res.status(500).json({ error: error.message });
