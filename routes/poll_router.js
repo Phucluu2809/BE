@@ -18,7 +18,7 @@ const router = Router();
             res.status(500).json({ error: error.message });
         }
         });
-
+    router.get('/getUserByID/:id', userController.getUserByID);
 // User Management
 router.post('/api/auth/register', validateUser, register);  
 router.post('/api/auth/login', login);  
