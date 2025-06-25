@@ -37,6 +37,6 @@ jobs:
             docker rm be-app || true
             docker pull ${{ secrets.DOCKER_USERNAME }}/be-app:latest
             docker run -d -p 8000:8000 --name be-app \
-            -e MONGO_URL="${{ secrets.MONGO_INITDB_ROOT_USERNAME }}" \
+            -e MONGO_URL="${{ secrets.MONGO_URL }}" \
             -e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
             ${{ secrets.DOCKER_USERNAME }}/be-app:latest
