@@ -2,7 +2,7 @@ name: CI/CD Pipeline EC2 AWS
 
 on:
   push:
-    branches: [uploadfile]
+    branches: [main]
 
 jobs:
   deploy:

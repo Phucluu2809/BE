@@ -1,117 +1,63 @@
-import authService from '../service/authservice.js';
 import SuccessResponse from '../handler/succes.response.js';
 import ErrorResponse from '../handler/error.response.js';
+import AuthService from '../service/authservice.js';
 
 class AuthController {
-  constructor() {
+  constructor(authService) {
     this.authService = authService;
   }
 
-  // Register new user
-  async register(req, res) {
+  register = async (req, res, next) => {
     try {
-      const userData = req.body;
-      const newUser = await this.authService.register(userData);
-      return SuccessResponse.Created(
-        { userId: newUser._id },
-        'Registration successful'
-      ).send(res);
+      const data = req.body;
+      const user = await this.authService.register(data);
+      SuccessResponse.Created({ user }, 'User registered successfully').send(res);
     } catch (error) {
-      console.error('Registration error:', error);
-      return ErrorResponse.InternalServer('Error during registration').send(res);
+      next(error);
     }
-  }
+  };
 
-  // Login user
-  async login(req, res) {
+  login = async (req, res, next) => {
     try {
       const { username, password } = req.body;
-      console.log('Login attempt:', { username, password: '***' });
-      
-      if (!username || !password) {
-        return ErrorResponse.BadRequest('Username and password are required').send(res);
-      }
-
       const result = await this.authService.login(username, password);
-      console.log('Login result:', result);
-      
-      if (result.error) {
-        return ErrorResponse.Unauthorized(result.error).send(res);
-      }
-
-      // Set refresh token in HTTP-only cookie
       res.cookie('refreshToken', result.refreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+        maxAge: 7 * 24 * 60 * 60 * 1000,
       });
-
-      return SuccessResponse.OK({
-        accessToken: result.accessToken,
-        user: result.user
-      }, 'Login successful').send(res);
+      SuccessResponse.OK({ accessToken: result.accessToken, user: result.user }, 'Login successful').send(res);
     } catch (error) {
-      console.error('Login error details:', error);
-      return ErrorResponse.InternalServer('Error during login').send(res);
+      next(error);
     }
-  }
+  };
 
-  async processNewToken(req, res) {
+  processNewToken = async (req, res, next) => {
     try {
       const { refreshToken } = req.cookies;
       const result = await this.authService.refreshToken(refreshToken);
 
-      if (result.error) {
-        return ErrorResponse.Unauthorized(result.error).send(res);
-      }
-
-      // Set new refresh token in cookie
-      res.cookie(
-        'refreshToken', 
-        result.refreshToken, 
-        this.authService.getCookieOptions()
-      );
-
-      return SuccessResponse.OK({
-        accessToken: result.accessToken,
-        user: result.user
-      }, 'Refresh token thành công').send(res);
-    } catch (err) {
-      console.error('Error refreshing token:', err);
-      return ErrorResponse.InternalServer('Lỗi server khi làm mới token').send(res);
+      res.cookie('refreshToken', result.refreshToken, {
+        httpOnly: true,
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
+      SuccessResponse.OK({ accessToken: result.accessToken }, 'Token refreshed successfully').send(res);
+    } catch (error) {
+      next(error);
     }
-  }
+  };
 
-  async logout(req, res) {
+  logout = async (req, res, next) => {
     try {
-      res.clearCookie('refreshToken', this.authService.getCookieOptions());
-      return SuccessResponse.OK(null, 'Đăng xuất thành công').send(res);
-    } catch (err) {
-      return ErrorResponse.InternalServer('Lỗi server khi đăng xuất').send(res);
+      res.clearCookie('refreshToken', { httpOnly: true });
+      SuccessResponse.OK(null, 'Logout successful').send(res);
+    } catch (error) {
+      next(error);
     }
-  }
-
-  async getMe(req, res) {
-    try {
-      const result = await this.authService.getMe(req.userId);
-      
-      if (result.error) {
-        return ErrorResponse.NotFound(result.error).send(res);
-      }
-
-      return SuccessResponse.OK(result, 'Lấy thông tin người dùng thành công').send(res);
-    } catch (err) {
-      console.error('Error getting user info:', err);
-      return ErrorResponse.InternalServer('Lỗi server khi lấy thông tin người dùng').send(res);
-    }
-  }
+  };
 }
 
-// Create instance and export methods
-const authController = new AuthController();
-export const register = authController.register.bind(authController);
-export const login = authController.login.bind(authController);
-export const processNewToken = authController.processNewToken.bind(authController);
-export const logout = authController.logout.bind(authController);
-export const getMe = authController.getMe.bind(authController);
+const authController = new AuthController(new AuthService());
+export const register = authController.register;
+export const login = authController.login;
+export const processNewToken = authController.processNewToken;
+export const logout = authController.logout;

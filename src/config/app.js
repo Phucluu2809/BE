@@ -1,7 +1,10 @@
 import express from 'express';
 import mongoose from 'mongoose';
-import pollRouter from '../../routes/poll_router.js';
 import cookieParser from 'cookie-parser';
+import dotenv from 'dotenv';
+import mainRouter from '../routes/main.router.js'; 
+
+dotenv.config();
 
 class App {
   constructor() {
@@ -12,32 +15,21 @@ class App {
   }
 
   setupMiddleware() {
-    this.app.use((req, res, next) => {
-      if (['POST', 'PUT', 'PATCH'].includes(req.method)) {
-        express.json()(req, res, next); // Chỉ parse body JSON cho các phương thức này
-      } else {
-        next();
-      }
-    });
+    this.app.use(express.json()); // parse JSON cho tất cả các request
     this.app.use(cookieParser());
   }
 
-
   setupRoutes() {
-    this.app.use('/', pollRouter);
+    this.app.use(mainRouter); 
   }
 
   async connectDatabase() {
-    const connectString = 'mongodb+srv://Phucluu:300105@cluster0.agdiigy.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
-    
     try {
-      mongoose.set('debug', true);
-      mongoose.set('debug', { color: true });
+      await mongoose.connect(process.env.Mongo_URL);
 
-      await mongoose.connect(connectString);
       console.log('MongoDB kết nối thành công!');
     } catch (error) {
-      console.error('MongoDB kết nối lỗi :', error.message);
+      console.error('MongoDB kết nối lỗi:', error.message);
     }
   }
 
@@ -45,7 +37,6 @@ class App {
     return this.app;
   }
 
-  // Singleton pattern
   static getInstance() {
     if (!App.instance) {
       App.instance = new App();
@@ -54,5 +45,4 @@ class App {
   }
 }
 
-// Create and export the singleton instance's Express app
 export default App.getInstance().getExpressApp();

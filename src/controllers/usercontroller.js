@@ -1,88 +1,69 @@
-import userService from '../service/user_service.js';
 import SuccessResponse from '../handler/succes.response.js';
 import ErrorResponse from '../handler/error.response.js';
+import userService from '../service/user_service.js';
 
 class UserController {
-  constructor() {
-    this.userService = userService;
-    // Bind methods to instance
-    this.getAllUser = this.getAllUser.bind(this);
-    this.getUserByID = this.getUserByID.bind(this);
-    this.addUser = this.addUser.bind(this);
-    this.putUser = this.putUser.bind(this);
-    this.deleteUser = this.deleteUser.bind(this);
-  }
-
-  async getAllUser() {
+  async getAllUsers(req, res, next) {
     try {
-      console.log('Getting all users...'); // Debug log
-      const users = await this.userService.getAllUsers();
-      console.log('Users found:', users); // Debug log
-    
-      if (!users || users.length === 0) {
-       throw new Error('Users not found!');
+      const users = await userService.getAllUsers();
+      if (!users.length) {
+        throw ErrorResponse.NotFound('No users found');
       }
-
-     return users; // Trả về dữ liệu
+      SuccessResponse.OK(users, 'Users retrieved successfully').send(res);
     } catch (error) {
-      console.error('Error in getAllUser:', error); // Error log
-      throw error; // Ném lỗi để xử lý tại router
-   }
+      next(error);
+    }
   }
 
-
-  async getUserByID(req, res) {
+  async getUserById(req, res, next) {
     try {
-      const id = req.params.id;
-      const user = await this.userService.getUserById(id);
+      const user = await userService.getUserById(req.params.id);
       if (!user) {
-        return ErrorResponse.NotFound('User not found!').send(res);
+        throw ErrorResponse.NotFound('User not found');
       }
-      return SuccessResponse.OK(user, 'User retrieved successfully').send(res);
+      SuccessResponse.OK(user, 'User retrieved successfully').send(res);
     } catch (error) {
-      return ErrorResponse.InternalServer('Error retrieving user').send(res);
+      next(error);
     }
   }
 
-  async addUser(req, res) {
+  async addUser(req, res, next) {
     try {
-      const user = req.body;
-      const newUser = await this.userService.addUser(user);
-      return SuccessResponse.Created(newUser, 'User created successfully').send(res);
+      const user = await userService.addUser(req.body);
+      SuccessResponse.Created(user, 'User created successfully').send(res);
     } catch (error) {
-      console.error('Lỗi khi thêm user:', error);
-      return ErrorResponse.InternalServer('Error creating user').send(res);
+      next(error);
     }
   }
 
-  async putUser(req, res) {
+  async updateUser(req, res, next) {
     try {
-      const id = req.params.id;
-      const user = req.body;
-      const updateUser = await this.userService.updateUser(id, user);
-      if (!updateUser) {
-        return ErrorResponse.NotFound('User not found!').send(res);
+      const updatedUser = await userService.updateUser(req.params.id, req.body);
+      if (!updatedUser) {
+        throw ErrorResponse.NotFound('User not found');
       }
-      return SuccessResponse.OK(updateUser, 'User updated successfully').send(res);
+      SuccessResponse.OK(updatedUser, 'User updated successfully').send(res);
     } catch (error) {
-      return ErrorResponse.InternalServer('Error updating user').send(res);
+      next(error);
     }
   }
 
-  async deleteUser(req, res) {
+  async deleteUser(req, res, next) {
     try {
-      const id = req.params.id;
-      const isDeleted = await this.userService.deleteUser(id);
+      const isDeleted = await userService.deleteUser(req.params.id);
       if (!isDeleted) {
-        return ErrorResponse.NotFound('User not found!').send(res);
+        throw ErrorResponse.NotFound('User not found');
       }
-      return SuccessResponse.OK(null, 'User deleted successfully').send(res);
+      SuccessResponse.OK(null, 'User deleted successfully').send(res);
     } catch (error) {
-      return ErrorResponse.InternalServer('Error deleting user').send(res);
+      next(error);
     }
   }
 }
 
-// Create instance and export
 const userController = new UserController();
-export default userController;
+export const getAllUsers = userController.getAllUsers.bind(userController);
+export const getUserById = userController.getUserById.bind(userController);
+export const addUser = userController.addUser.bind(userController);
+export const updateUser = userController.updateUser.bind(userController);
+export const deleteUser = userController.deleteUser.bind(userController);
