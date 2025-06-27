@@ -15,7 +15,7 @@ class App {
   }
 
   setupMiddleware() {
-    this.app.use(express.json()); // parse JSON cho tất cả các request
+    this.app.use(express.json()); 
     this.app.use(cookieParser());
   }
 

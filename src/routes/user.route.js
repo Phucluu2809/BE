@@ -6,7 +6,7 @@ import {
   addUser,
   updateUser,
   deleteUser,
-} from '../controllers/userController.js';
+} from '../controllers/usercontroller.js';
 import { checkAuth } from '../middleware/checkAuth.js';
 import { isAdmin } from '../middleware/roleCheck.js';
 
