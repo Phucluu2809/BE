@@ -15,9 +15,10 @@ class UserController {
     }
   }
 
-  async getUserById(req, res, next) {
+
+  async getMe(req, res, next) {
     try {
-      const user = await userService.getUserById(req.params.id);
+      const user = await userService.getUserById(req.user.id);
       if (!user) {
         throw ErrorResponse.NotFound('User not found');
       }
@@ -63,7 +64,7 @@ class UserController {
 
 const userController = new UserController();
 export const getAllUsers = userController.getAllUsers.bind(userController);
-export const getUserById = userController.getUserById.bind(userController);
 export const addUser = userController.addUser.bind(userController);
 export const updateUser = userController.updateUser.bind(userController);
 export const deleteUser = userController.deleteUser.bind(userController);
+export const getMe = userController.getMe.bind(userController);

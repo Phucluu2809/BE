@@ -1,25 +1,23 @@
 import mongoose from 'mongoose';
 
 const userSchema = new mongoose.Schema({
-  name: {
+  title: {
     type: String,
     required: true
   },
-  email: {
+  author: {
     type: String,
     required: true,
   },
-  password: {
+  description: {
      type: String, 
      required: true 
   },
-  role: {
-    type: String,
-    enum: ['user', 'admin'],
-    default: 'user'
-  }
 }, { timestamps: true,  versionKey: false });   
 
-const User = mongoose.models.User || mongoose.model('User', userSchema);
+const Book = mongoose.models.Book || mongoose.model('Book', userSchema);
 
-export default User;
+export default Book;
+
+
+

@@ -2,7 +2,7 @@ import SuccessResponse from '../handler/succes.response.js';
 import ErrorResponse from '../handler/error.response.js';
 import AuthService from '../service/authservice.js';
 
-class AuthController {
+class AuthController { 
   constructor(authService) {
     this.authService = authService;
   }
