@@ -12,6 +12,11 @@ const voteSchema = new mongoose.Schema(
       ref: 'Poll', // Tham chiếu đến id poll
       required: true,
     },
+    option: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Option', // Tham chiếu đến id option
+      required: true,
+    },
   },
   { timestamps: true, versionKey: false }
 );

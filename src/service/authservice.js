@@ -2,11 +2,12 @@ import User from '../models/usermodel.js';
 import { hashpass, comparePassword } from '../until/hashpass.js';
 import jwt from 'jsonwebtoken';
 import ErrorResponse from '../handler/error.response.js';
-
+import dotenv from 'dotenv';
+dotenv.config();
 class AuthService {
   constructor() {
-    this.jwtSecret = 'SecretKeyCuaTao';
-    this.jwtRefreshSecret = 'RefreshSecretKeyCuatao';
+    this.jwtSecret = process.env.JWT_SECRET;
+    this.jwtRefreshSecret = process.env.JWT_REFRESH_SECRET;
   }
 
   async findByUsername(username) {

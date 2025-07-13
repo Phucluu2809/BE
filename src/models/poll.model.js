@@ -9,13 +9,13 @@ const optionSchema = new mongoose.Schema({
     type: Number,
     default: 0, // Số phiếu của option này nhận đc=))
   },
-  userVotes: [
-    {
+  userVotes: [ 
+    { 
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User', // Tham chiếu đến usermode coi ai đã tạo vote 
     },
   ],
-});
+}); 
 
 const pollSchema = new mongoose.Schema(
   {

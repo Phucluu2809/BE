@@ -1,7 +1,7 @@
 import Poll from '../models/poll.model.js';
 import ErrorResponse from '../handler/error.response.js';
 
-class PollService {
+class PollService { 
   async getAllPolls() {
     return await Poll.find();
   }
@@ -23,8 +23,8 @@ class PollService {
     return await Poll.findByIdAndDelete(id);
   }
 
-  async updatePollStatus(id, isActive) {
-    return await Poll.findByIdAndUpdate(id, { isActive }, { new: true });
+  async updatePollStatus(id, isLocked) {
+    return await Poll.findByIdAndUpdate(id, { isLocked }, { new: true });
   }
 
   async addOption(id, option) {

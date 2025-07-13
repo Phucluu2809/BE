@@ -14,7 +14,6 @@ const router = Router();
 
 router.get('/', checkAuth, isAdmin, asyncHandler(getAllUsers));
 router.get('/:id', checkAuth, isAdmin, asyncHandler(getUserById));
-router.post('/', checkAuth, isAdmin, asyncHandler(addUser));
 router.put('/:id', checkAuth, isAdmin, asyncHandler(updateUser));
 router.delete('/:id', checkAuth, isAdmin, asyncHandler(deleteUser));
 

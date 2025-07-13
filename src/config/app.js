@@ -10,7 +10,7 @@ class App {
   constructor() {
     this.app = express();
     this.setupMiddleware();
-    this.setupRoutes();
+    this.setupRoutes(); 
     this.connectDatabase();
   }
 
